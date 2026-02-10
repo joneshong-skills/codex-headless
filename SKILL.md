@@ -374,17 +374,9 @@ Background process started:
 
 ---
 
-## Looking up Codex documentation via DeepWiki
+## Looking up Codex documentation
 
-When encountering unfamiliar flags, features, sandbox policies, SDK usage, or any Codex topic not covered above, query the official repository documentation using the DeepWiki MCP server.
-
-### Query the repo
-
-```
-mcp__deepwiki__ask_question
-  repoName: "openai/codex"
-  question: "<specific question about Codex>"
-```
+When encountering unfamiliar flags, features, sandbox policies, SDK usage, or any Codex topic not covered above, use the **smart-search** skill to query documentation. Smart-search automatically routes queries across DeepWiki, Context7, and Perplexity for the best answer.
 
 ### Example queries
 
@@ -399,16 +391,7 @@ mcp__deepwiki__ask_question
 "How to use Codex with open-source models via --oss flag?"
 ```
 
-### Browse available topics
-
-```
-mcp__deepwiki__read_wiki_structure
-  repoName: "openai/codex"
-```
-
-Use this to discover which documentation sections exist before asking a targeted question.
-
-### When to query DeepWiki
+### When to look up documentation
 
 - A flag or option is not documented in this skill
 - The user asks about SDK integration, custom providers, or advanced configuration
