@@ -1,3 +1,5 @@
+[English](README.md) | [繁體中文](README.zh.md)
+
 # codex-headless
 
 Run OpenAI Codex in headless mode (`codex exec`) on macOS.
