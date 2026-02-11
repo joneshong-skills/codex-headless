@@ -1,6 +1,12 @@
 ---
 name: codex-headless
-description: "Run OpenAI Codex in headless mode (`codex exec`) on macOS. Use when the user asks to run Codex programmatically, execute headless prompts, use `codex exec`, get structured JSON output, auto-approve commands with --full-auto or sandbox policies, pipe output, create commits via CLI, integrate Codex into scripts, cron jobs, and CI/CD workflows on macOS, or asks about Codex CLI features, flags, sandbox policies, SDK, or configuration."
+description: >-
+  This skill should be used when the user asks to "run Codex headless",
+  "use codex exec", "execute a Codex prompt", "Codex 腳本",
+  "pipe output from Codex", "auto-approve Codex commands",
+  or discusses running OpenAI Codex programmatically, integrating into scripts,
+  cron jobs, CI/CD workflows, structured JSON output, sandbox policies,
+  or Codex CLI features, flags, SDK, and configuration on macOS.
 version: 0.1.0
 argument-hint: "[prompt or flags]"
 ---
@@ -367,11 +373,11 @@ Background process started:
 3. **Avoid `--yolo`** unless running inside an externally sandboxed environment (Docker, VM)
 4. **Use `--json`** for machine-readable event streams in automation pipelines
 5. **Use `-o`** to capture the final agent message to a file for post-processing
-6. **Use `--output-schema`** when you need structured, typed responses
+6. **Use `--output-schema`** for structured, typed responses
 7. **Pipe liberally** -- treat `codex exec` as a Unix utility
 8. **Use `--cd`** to set the working directory instead of `cd`-ing first
 9. **Use `--ephemeral`** for one-off tasks where session persistence isn't needed
-10. **Capture session IDs** via `--json` output when you need to resume or fork later
+10. **Capture session IDs** via `--json` output for resuming or forking later
 
 ---
 
