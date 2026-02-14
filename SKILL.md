@@ -1,5 +1,5 @@
 ---
-name: codex-headless
+name: codex-cli-headless
 description: >-
   This skill should be used when the user asks to "run Codex headless",
   "use codex exec", "execute a Codex prompt", "Codex 腳本",
@@ -33,6 +33,19 @@ If `codex` is not found, install via:
 ```bash
 npm install -g @openai/codex
 ```
+
+---
+
+## Non-git-repo caveat
+
+Codex **refuses to run outside a trusted (git) directory** by default. If running in a non-git directory (e.g., `~`):
+
+```bash
+# Skip the git repo check
+codex exec --skip-git-repo-check "Your prompt here"
+```
+
+Without this, you'll get: `Not inside a trusted directory and --skip-git-repo-check was not specified.`
 
 ---
 
@@ -74,7 +87,7 @@ script -q /dev/null codex exec "Your prompt here"
 A wrapper script is provided that handles this automatically:
 
 ```bash
-python3 ~/.claude/skills/codex-headless/scripts/codex_headless.py \
+python3 ~/.claude/skills/codex-cli-headless/scripts/codex_headless.py \
   "Your prompt here"
 ```
 
@@ -191,7 +204,7 @@ codex exec -o result.txt "Summarize this project"; \
 For long-running tasks that need monitoring, use the Python wrapper with tmux:
 
 ```bash
-python3 ~/.claude/skills/codex-headless/scripts/codex_headless.py \
+python3 ~/.claude/skills/codex-cli-headless/scripts/codex_headless.py \
   --mode interactive \
   --tmux-session my-session \
   --sandbox workspace-write \
@@ -230,12 +243,89 @@ For deeper integration, use the `@openai/codex-sdk` package. See [references/rec
 Run tasks in the background -- the wrapper returns immediately with PID and log path.
 
 ```bash
-python3 ~/.claude/skills/codex-headless/scripts/codex_headless.py \
+python3 ~/.claude/skills/codex-cli-headless/scripts/codex_headless.py \
   --background --notify \
   --full-auto "Run all tests and fix failures"
 ```
 
 Flags: `--background` / `--bg` (run in background), `--log-dir <path>` (log directory), `--notify` (macOS notification on completion).
+
+---
+
+## Leveraging skills in headless mode
+
+Codex in headless mode can use skills stored in `~/.codex/skills/`. Since Codex does not
+auto-discover skill files, the prompt must instruct it to **read the SKILL.md first** via
+shell commands (`cat`), then follow the instructions.
+
+### Available skills (`~/.codex/skills/`)
+
+| Skill | What it does |
+|-------|-------------|
+| `smart-search` | Hybrid search (DeepWiki + Context7 + Perplexity) |
+| `image-prompt` | Generate structured AI image generation prompts |
+| `image-gen` | Generate images via Grok/Gemini web platforms |
+| `create-skill` | Guide for creating new skills |
+| `skill-optimizer` | Improve skills based on usage feedback |
+| `team-tasks` | Multi-agent task coordination |
+| `openclaw-mentor` | OpenClaw project guidance |
+
+### How to use skills in headless prompts
+
+```bash
+# Pattern: instruct Codex to read SKILL.md first, then execute
+codex exec --skip-git-repo-check --full-auto \
+  "Read the skill at ~/.codex/skills/image-prompt/SKILL.md, then follow its instructions to generate a prompt for: a dragon reading a book in a library. Save to ~/Claude/skills/headless-test/codex-dragon.md"
+
+# Smart search skill
+codex exec --skip-git-repo-check --full-auto \
+  "Read ~/.codex/skills/smart-search/SKILL.md and use it to search for 'Codex CLI latest features 2026'. Save results to ~/Claude/skills/headless-test/codex-search.md"
+
+# Chain: read skill → execute → save output
+codex exec --skip-git-repo-check --full-auto \
+  "First read ~/.codex/skills/create-skill/SKILL.md, then create a new skill called 'code-review' following that guide. Save to ~/.codex/skills/code-review/"
+```
+
+### Tips
+
+- Always include **"Read the skill at ~/.codex/skills/{name}/SKILL.md"** in the prompt — Codex uses `cat` to read it
+- Use `--full-auto` to allow file reads and writes without approval prompts
+- For skills that need web access, Codex relies on its MCP servers (e.g., DeepWiki)
+- Codex faithfully follows SKILL.md structure including Continuous Improvement sections
+- Output convention: `~/Claude/skills/{skill-name}/YYYY-MM-DD-{name}.{ext}`
+
+---
+
+## Policy & Compliance (Last verified: 2026-02-14)
+
+> This section is monitored daily by the Daily Intelligence Briefing (Topic 6: 開發工具政策).
+> When policy changes are detected, the briefing will flag "ACTION REQUIRED: 更新 headless skill".
+
+### Current OpenAI Policy
+
+| Item | Status | Detail |
+|------|--------|--------|
+| **Open source license** | Apache 2.0 | Codex CLI is fully open-source, wrapping and extending is permitted by the license. |
+| **Headless / programmatic use** | ALLOWED | `codex exec` is a first-class feature designed for scripting and automation. |
+| **Web UI wrapping** | ALLOWED | OpenAI themselves built Codex Web (JSON-RPC + container). Third-party UIs like CloudCLI also work. |
+| **Subscription access** | ChatGPT Plus/Pro/Biz/Edu/Enterprise | CLI, Web, IDE-extension, and app all use ChatGPT login. Additional credits purchasable. |
+| **Local/OSS providers** | SUPPORTED | `--local-provider ollama` and `--oss` flags allow using non-OpenAI models. |
+
+### Safe Integration Patterns
+
+```
+SAFE:     codex exec "..." (headless mode with ChatGPT subscription)
+SAFE:     codex exec --full-auto "..." (auto-approve in workspace)
+SAFE:     Web UI wrapping the CLI process (Apache 2.0)
+SAFE:     --local-provider ollama (using local models, no policy concern)
+CAUTION:  --sandbox danger-full-access (security risk, not policy risk)
+```
+
+### Policy Change History
+
+| Date | Change |
+|------|--------|
+| 2026-02 | No restrictions known. Apache 2.0 open-source license in effect. ChatGPT subscription includes CLI usage. |
 
 ---
 
@@ -259,6 +349,25 @@ Flags: `--background` / `--bg` (run in background), `--log-dir <path>` (log dire
 For unfamiliar flags, SDK usage, or advanced configuration, use the **smart-search** skill to query documentation. See [references/recipes.md](references/recipes.md#looking-up-codex-documentation) for example queries and guidance on when to search.
 
 ---
+
+## Continuous Improvement
+
+This skill evolves with each use. After every invocation:
+
+1. **Reflect** — Identify what worked, what caused friction, and any unexpected issues
+2. **Record** — Append a concise lesson to `lessons.md` in this skill's directory
+3. **Refine** — When a pattern recurs (2+ times), update SKILL.md directly
+
+### lessons.md Entry Format
+
+```
+### YYYY-MM-DD — Brief title
+- **Friction**: What went wrong or was suboptimal
+- **Fix**: How it was resolved
+- **Rule**: Generalizable takeaway for future invocations
+```
+
+Accumulated lessons signal when to run `/skill-optimizer` for a deeper structural review.
 
 ## Additional Resources
 
